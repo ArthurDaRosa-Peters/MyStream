@@ -1,0 +1,32 @@
+MYStream/
+
+├── MYStreamApp.swift          (Einstiegspunkt)
+├── CoreData/
+│   └── MYStream.xcdatamodeld  (bereits vorhanden)
+├── Models/
+│   ├── AnimeModel.swift       (Decodable structs für JSON)
+│   └── EpisodeModel.swift
+├── Network/
+│   └── APIClient.swift        (alle API-Calls zentral)
+├── Managers/
+│   ├── AuthManager.swift      (Token/Keychain)
+│   ├── CoreDataManager.swift  (CRUD für CDAnime, CDEpisode, CDUser)
+│   └── DownloadManager.swift  (URLSessionDownloadTask)
+├── ViewModels/
+│   ├── LoginViewModel.swift
+│   ├── HomeViewModel.swift
+│   └── DownloadsViewModel.swift
+└── Views/
+    ├── ContentView.swift      (Router: Login vs. TabView)
+    ├── Login/
+    │   └── LoginView.swift
+    ├── Home/
+    │   └── HomeView.swift
+    ├── Downloads/
+    │   └── DownloadsView.swift
+    ├── Shared/
+    │   ├── AnimeGridView.swift     (wiederverwendbares Grid)
+    │   ├── SidebarView.swift
+    │   └── SeriesOverlayView.swift
+    └── Player/
+        └── VideoPlayerView.swift
