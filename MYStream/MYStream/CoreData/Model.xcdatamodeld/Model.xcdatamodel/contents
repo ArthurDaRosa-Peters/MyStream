@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24901" systemVersion="25F71" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
-    <entity name="CDAnime" representedClassName="CDAnime" syncable="YES">
+    <entity name="CDAnime" representedClassName=".CDAnime" syncable="YES">
         <attribute name="coverURL" optional="YES" attributeType="String"/>
         <attribute name="dateAdded" optional="YES" attributeType="String"/>
         <attribute name="episodeCount" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>

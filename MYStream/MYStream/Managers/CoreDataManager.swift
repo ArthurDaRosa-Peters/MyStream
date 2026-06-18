@@ -4,24 +4,28 @@ import CoreData
 // MARK: - CoreDataManager
 final class CoreDataManager {
 
-    static let shared = CoreDataManager()
-    private init() {}
-
     // MARK: - Persistent Container
-    lazy var persistentContainer: NSPersistentContainer = {
-        let container = NSPersistentContainer(name: "MYStream")
-        container.loadPersistentStores { _, error in
-            if let error = error {
-                fatalError("CoreData Store konnte nicht geladen werden: \(error)")
-            }
-        }
-        container.viewContext.automaticallyMergesChangesFromParent = true
-        return container
-    }()
+    static let shared = CoreDataManager()
+        
+        // 1. Ändere 'lazy var' zu einer normalen konstanten 'let' Eigenschaft
+        let persistentContainer: NSPersistentContainer
 
-    var context: NSManagedObjectContext {
-        persistentContainer.viewContext
-    }
+        private init() {
+            // 2. Initialisiere den Container direkt im init
+            persistentContainer = NSPersistentContainer(name: "MYStream")
+            
+            // 3. Lade den Store synchron/sofort beim App-Start
+            persistentContainer.loadPersistentStores { _, error in
+                if let error = error {
+                    fatalError("CoreData Store konnte nicht geladen werden: \(error)")
+                }
+            }
+            persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
+        }
+
+        var context: NSManagedObjectContext {
+            persistentContainer.viewContext
+        }
 
     // MARK: - Save
     func save() {
