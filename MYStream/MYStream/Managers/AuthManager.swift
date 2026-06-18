@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+internal import Combine
 
 // MARK: - AuthManager
 @MainActor

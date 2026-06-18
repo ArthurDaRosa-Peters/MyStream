@@ -1,6 +1,7 @@
 import Foundation
 import CoreData
 import SwiftUI
+internal import Combine
 
 @MainActor
 final class HomeViewModel: ObservableObject {

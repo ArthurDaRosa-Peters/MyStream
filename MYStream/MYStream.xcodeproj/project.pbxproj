@@ -6,8 +6,23 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		E1BAFC4D2FE3EC0800F1473D /* CDEpisode+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1BAFC4A2FE3EC0800F1473D /* CDEpisode+CoreDataProperties.swift */; };
+		E1BAFC4E2FE3EC0800F1473D /* CDAnime+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1BAFC482FE3EC0800F1473D /* CDAnime+CoreDataProperties.swift */; };
+		E1BAFC4F2FE3EC0800F1473D /* CDAnime+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1BAFC472FE3EC0800F1473D /* CDAnime+CoreDataClass.swift */; };
+		E1BAFC502FE3EC0800F1473D /* CDEpisode+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1BAFC492FE3EC0800F1473D /* CDEpisode+CoreDataClass.swift */; };
+		E1BAFC512FE3EC0800F1473D /* CDUser+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1BAFC4C2FE3EC0800F1473D /* CDUser+CoreDataProperties.swift */; };
+		E1BAFC522FE3EC0800F1473D /* CDUser+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1BAFC4B2FE3EC0800F1473D /* CDUser+CoreDataClass.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		E19C80E92FC8319000542F40 /* MYStream.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MYStream.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E1BAFC472FE3EC0800F1473D /* CDAnime+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "CDAnime+CoreDataClass.swift"; path = "MYStream/Models/CDAnime+CoreDataClass.swift"; sourceTree = "<group>"; };
+		E1BAFC482FE3EC0800F1473D /* CDAnime+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "CDAnime+CoreDataProperties.swift"; path = "MYStream/Models/CDAnime+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		E1BAFC492FE3EC0800F1473D /* CDEpisode+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "CDEpisode+CoreDataClass.swift"; path = "MYStream/Models/CDEpisode+CoreDataClass.swift"; sourceTree = "<group>"; };
+		E1BAFC4A2FE3EC0800F1473D /* CDEpisode+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "CDEpisode+CoreDataProperties.swift"; path = "MYStream/Models/CDEpisode+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		E1BAFC4B2FE3EC0800F1473D /* CDUser+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "CDUser+CoreDataClass.swift"; path = "MYStream/Models/CDUser+CoreDataClass.swift"; sourceTree = "<group>"; };
+		E1BAFC4C2FE3EC0800F1473D /* CDUser+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "CDUser+CoreDataProperties.swift"; path = "MYStream/Models/CDUser+CoreDataProperties.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -32,6 +47,12 @@
 		E19C80E02FC8319000542F40 = {
 			isa = PBXGroup;
 			children = (
+				E1BAFC472FE3EC0800F1473D /* CDAnime+CoreDataClass.swift */,
+				E1BAFC482FE3EC0800F1473D /* CDAnime+CoreDataProperties.swift */,
+				E1BAFC492FE3EC0800F1473D /* CDEpisode+CoreDataClass.swift */,
+				E1BAFC4A2FE3EC0800F1473D /* CDEpisode+CoreDataProperties.swift */,
+				E1BAFC4B2FE3EC0800F1473D /* CDUser+CoreDataClass.swift */,
+				E1BAFC4C2FE3EC0800F1473D /* CDUser+CoreDataProperties.swift */,
 				E19C80EB2FC8319000542F40 /* MYStream */,
 				E19C80EA2FC8319000542F40 /* Products */,
 			);
@@ -119,6 +140,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E1BAFC4D2FE3EC0800F1473D /* CDEpisode+CoreDataProperties.swift in Sources */,
+				E1BAFC4E2FE3EC0800F1473D /* CDAnime+CoreDataProperties.swift in Sources */,
+				E1BAFC4F2FE3EC0800F1473D /* CDAnime+CoreDataClass.swift in Sources */,
+				E1BAFC502FE3EC0800F1473D /* CDEpisode+CoreDataClass.swift in Sources */,
+				E1BAFC512FE3EC0800F1473D /* CDUser+CoreDataProperties.swift in Sources */,
+				E1BAFC522FE3EC0800F1473D /* CDUser+CoreDataClass.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

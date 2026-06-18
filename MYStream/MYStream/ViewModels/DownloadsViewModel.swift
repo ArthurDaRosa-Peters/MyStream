@@ -1,5 +1,6 @@
 import Foundation
 import CoreData
+internal import Combine
 
 @MainActor
 final class DownloadsViewModel: ObservableObject {
