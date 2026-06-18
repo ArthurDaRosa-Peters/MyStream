@@ -9,14 +9,12 @@ struct AnimeCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            // Cover
             CoverImageView(
                 path: anime.coverURL ?? "",
                 width: cardWidth,
                 height: cardWidth * 1.4
             )
 
-            // Titel
             Text(anime.title ?? "Unbekannt")
                 .font(.caption)
                 .fontWeight(.medium)
@@ -37,6 +35,11 @@ struct CoverImageView: View {
 
     private var fullURL: URL? {
         guard !path.isEmpty else { return nil }
+        // Absolute URLs (https://cdn.anilist.co/...) direkt nutzen
+        // Relative Pfade (/public/img/...) mit localhost prefixen
+        if path.hasPrefix("http://") || path.hasPrefix("https://") {
+            return URL(string: path)
+        }
         return URL(string: "http://localhost:8080\(path)")
     }
 

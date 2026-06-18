@@ -1,10 +1,14 @@
 import Foundation
 
 // MARK: - Home Response
+// recent und watchlist können null sein → Optional mit Fallback []
 struct HomeResponse: Decodable {
-    let recent: [Anime]
-    let watchlist: [Anime]
+    let recent: [Anime]?
+    let watchlist: [Anime]?
     let all: [Anime]
+
+    var recentAnimes: [Anime]   { recent   ?? [] }
+    var watchlistAnimes: [Anime] { watchlist ?? [] }
 }
 
 // MARK: - Anime

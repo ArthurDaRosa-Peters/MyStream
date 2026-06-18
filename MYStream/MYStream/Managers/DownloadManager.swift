@@ -1,7 +1,8 @@
 import Foundation
+internal import Combine
 
 // MARK: - Download State
-enum DownloadState {
+enum DownloadState: Equatable {
     case idle
     case downloading(progress: Double)
     case done
@@ -11,6 +12,8 @@ enum DownloadState {
 // MARK: - DownloadManager
 @MainActor
 final class DownloadManager: NSObject, ObservableObject {
+    let objectWillChange = ObservableObjectPublisher()
+    
 
     static let shared = DownloadManager()
 
@@ -23,7 +26,9 @@ final class DownloadManager: NSObject, ObservableObject {
         return URLSession(configuration: config, delegate: self, delegateQueue: nil)
     }()
 
-    private override init() {}
+    private override init() {
+        super.init()
+    }
 
     // MARK: - Start Download
     func download(episode: CDEpisode) {
@@ -55,7 +60,7 @@ final class DownloadManager: NSObject, ObservableObject {
     }
 
     // MARK: - Local File URL helper
-    static func localURL(for episodeId: Int64) -> URL {
+    nonisolated static func localURL(for episodeId: Int64) -> URL {
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         return docs.appendingPathComponent("episode_\(episodeId).mp4")
     }

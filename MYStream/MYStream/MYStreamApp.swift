@@ -9,9 +9,11 @@ import SwiftUI
 
 @main
 struct MYStreamApp: App {
+    @StateObject private var authManager = AuthManager.shared
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(authManager)
         }
     }
 }

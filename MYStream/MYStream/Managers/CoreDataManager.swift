@@ -65,7 +65,7 @@ final class CoreDataManager {
             cdEpisode.id            = Int64(episode.id)
             cdEpisode.episodeNumber = Int16(episode.episodeNumber)
             cdEpisode.seasonNumber  = Int16(episode.seasonNumber)
-            cdEpisode.title         = episode.title
+            cdEpisode.title         = nil // kein title-Feld im Backend
             cdEpisode.duration      = episode.duration
             cdEpisode.progress      = episode.progress
             cdEpisode.completed     = episode.completed

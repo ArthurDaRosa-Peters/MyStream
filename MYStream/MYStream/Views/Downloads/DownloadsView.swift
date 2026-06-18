@@ -2,6 +2,7 @@ import SwiftUI
 
 struct DownloadsView: View {
 
+    @EnvironmentObject var authManager: AuthManager
     @Binding var showSidebar: Bool
     @StateObject private var vm = DownloadsViewModel()
     @StateObject private var downloadManager = DownloadManager.shared
@@ -88,6 +89,7 @@ struct DownloadsView: View {
         .onChange(of: downloadManager.states) { _ in vm.refresh() }
         .sheet(item: $selectedAnime) { anime in
             SeriesOverlayView(anime: anime)
+                .environmentObject(authManager)
         }
     }
 }
