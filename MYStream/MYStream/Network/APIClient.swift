@@ -5,7 +5,7 @@ enum APIError: LocalizedError {
     case invalidURL
     case unauthorized
     case serverError(Int)
-    case decodingError
+    case decodingError(String)
     case noNetwork
 
     var errorDescription: String? {
@@ -13,7 +13,7 @@ enum APIError: LocalizedError {
         case .invalidURL:        return "Ungültige URL."
         case .unauthorized:      return "Nicht autorisiert. Bitte erneut einloggen."
         case .serverError(let c): return "Serverfehler: \(c)"
-        case .decodingError:     return "Antwort konnte nicht verarbeitet werden."
+        case .decodingError(let message): return "Antwort konnte nicht verarbeitet werden: \(message)"
         case .noNetwork:         return "Keine Netzwerkverbindung."
         }
     }
@@ -71,7 +71,8 @@ final class APIClient {
         do {
             return try JSONDecoder().decode(T.self, from: data)
         } catch {
-            throw APIError.decodingError
+            print("Decoding error for \(path): \(error)")
+            throw APIError.decodingError(error.localizedDescription)
         }
     }
 
@@ -106,7 +107,8 @@ final class APIClient {
         do {
             return try JSONDecoder().decode(LoginResponse.self, from: data)
         } catch {
-            throw APIError.decodingError
+            print("Login decoding error: \(error)")
+            throw APIError.decodingError(error.localizedDescription)
         }
     }
 

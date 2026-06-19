@@ -18,8 +18,8 @@ final class HomeViewModel: ObservableObject {
         errorMessage = nil
         do {
             let homeResponse = try await APIClient.shared.fetchHome()
-            // Alle Animes aus der "all"-Liste in CoreData synchronisieren
-            cdManager.syncAnimes(homeResponse.all)
+            // Alle vom Home-Endpunkt gelieferten Listen synchronisieren.
+            cdManager.syncAnimes(homeResponse.allSyncedAnimes)
             animes = cdManager.fetchAllAnimes()
         } catch let apiError as APIError {
             errorMessage = apiError.errorDescription

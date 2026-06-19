@@ -12,7 +12,7 @@ final class CoreDataManager {
 
         private init() {
             // 2. Initialisiere den Container direkt im init
-            persistentContainer = NSPersistentContainer(name: "MYStream")
+            persistentContainer = NSPersistentContainer(name: "Model")
             
             // 3. Lade den Store synchron/sofort beim App-Start
             persistentContainer.loadPersistentStores { _, error in
