@@ -26,100 +26,125 @@ struct SeriesOverlayView: View {
         allEpisodes.filter { Int($0.seasonNumber) == selectedSeason }
     }
 
+    private let thumbnailWidth: CGFloat = 150
+    private let thumbnailHeight: CGFloat = 180
+    private let episodeColumns = [
+        GridItem(.flexible(), spacing: 8),
+        GridItem(.flexible(), spacing: 8),
+        GridItem(.flexible(), spacing: 8)
+    ]
+
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color(red: 0.07, green: 0.07, blue: 0.07)
+                .ignoresSafeArea()
 
             ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-
-                    // MARK: Header Bild + Zurück-Button
-                    ZStack(alignment: .topLeading) {
-                        CoverImageView(
-                            path: anime.coverURL ?? "",
-                            width: UIScreen.main.bounds.width,
-                            height: 220
-                        )
-                        .clipped()
-
+                VStack(alignment: .leading, spacing: 18) {
+                    HStack(alignment: .center, spacing: 18) {
                         Button { dismiss() } label: {
                             Image(systemName: "chevron.left")
                                 .foregroundColor(.white)
-                                .font(.title2)
-                                .padding(12)
-                                .background(Color.black.opacity(0.5))
-                                .clipShape(Circle())
+                                .font(.system(size: 28, weight: .medium))
+                                .frame(width: 32, height: 44)
                         }
-                        .padding(.top, 48)
-                        .padding(.leading, 16)
+
+                        Text("MYStream")
+                            .font(.system(size: 34, weight: .regular))
+                            .foregroundColor(.red)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.75)
+                    }
+                    .padding(.top, 12)
+
+                    HStack(alignment: .top, spacing: 18) {
+                        Text(anime.title ?? "Unbekannt")
+                            .font(.title3)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                            .textCase(.uppercase)
+                            .lineLimit(4)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                        CoverImageView(
+                            path: anime.coverURL ?? "",
+                            width: thumbnailWidth,
+                            height: thumbnailHeight
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                     }
 
-                    VStack(alignment: .leading, spacing: 12) {
-
-                        // MARK: Titel
-                        Text(anime.title ?? "Unbekannt")
-                            .font(.title2)
-                            .fontWeight(.bold)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Beschreibung")
+                            .font(.title3)
+                            .fontWeight(.semibold)
                             .foregroundColor(.white)
 
-                        // MARK: Beschreibung
-                        if let summary = anime.summary, !summary.isEmpty {
-                            Text(summary)
-                                .font(.body)
-                                .foregroundColor(.gray)
-                                .lineSpacing(4)
-                        }
-
-                        Divider().background(Color.white.opacity(0.12))
-
-                        // MARK: Staffel Dropdown
-                        if !availableSeasons.isEmpty {
-                            HStack {
-                                Text("Staffel")
-                                    .foregroundColor(.white)
-                                    .font(.subheadline)
-
-                                Spacer()
-
-                                Menu {
-                                    ForEach(availableSeasons, id: \.self) { season in
-                                        Button("Staffel \(season)") {
-                                            selectedSeason = season
-                                        }
-                                    }
-                                } label: {
-                                    HStack(spacing: 4) {
-                                        Text("Staffel \(selectedSeason)")
-                                            .foregroundColor(.white)
-                                            .font(.subheadline)
-                                        Image(systemName: "chevron.down")
-                                            .foregroundColor(.gray)
-                                            .font(.caption)
-                                    }
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 6)
-                                    .background(Color.white.opacity(0.1))
-                                    .cornerRadius(8)
-                                }
-                            }
-
-                            // MARK: Episodenliste
-                            LazyVStack(spacing: 8) {
-                                ForEach(episodesForSeason) { episode in
-                                    EpisodeRow(episode: episode, anime: anime)
-                                        .onTapGesture {
-                                            selectedEpisode = episode
-                                        }
-                                }
-                            }
-                        } else {
-                            Text("Keine Episoden verfügbar.")
-                                .foregroundColor(.gray)
+                        ScrollView {
+                            Text(descriptionText)
                                 .font(.subheadline)
+                                .foregroundColor(.white)
+                                .lineSpacing(3)
+                                .frame(maxWidth: .infinity, minHeight: 200, alignment: .topLeading)
                         }
+                        .frame(maxHeight: 200)
                     }
-                    .padding(16)
+                    .padding(.horizontal, 22)
+                    .padding(.vertical, 18)
+                    .background(Color.white.opacity(0.14))
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .stroke(Color.white.opacity(0.16), lineWidth: 1)
+                    )
+
+                    if !availableSeasons.isEmpty {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                ForEach(availableSeasons, id: \.self) { season in
+                                    Button {
+                                        selectedSeason = season
+                                    } label: {
+                                        Text("Season \(season)")
+                                            .font(.subheadline)
+                                            .foregroundColor(selectedSeason == season ? .white : .black)
+                                            .frame(height: 34)
+                                            .padding(.horizontal, 16)
+                                            .background(selectedSeason == season ? Color.red : Color.gray)
+                                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                    }
+                                }
+                            }
+                        }
+
+                        LazyVGrid(columns: episodeColumns, spacing: 8) {
+                            ForEach(episodesForSeason) { episode in
+                                Button {
+                                    selectedEpisode = episode
+                                } label: {
+                                    Text("EP \(episode.episodeNumber)")
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(.white)
+                                        .frame(maxWidth: .infinity)
+                                        .frame(height: 34)
+                                        .background(Color.white.opacity(0.14))
+                                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                                .stroke(Color.white.opacity(0.16), lineWidth: 1)
+                                        )
+                                }
+                            }
+                        }
+                    } else {
+                        Text("Keine Episoden verfügbar.")
+                            .foregroundColor(.gray)
+                            .font(.subheadline)
+                    }
                 }
+                .padding(.horizontal, 22)
+                .padding(.bottom, 28)
             }
         }
         .onAppear {
@@ -131,6 +156,14 @@ struct SeriesOverlayView: View {
         .fullScreenCover(item: $selectedEpisode) { episode in
             VideoPlayerView(episode: episode)
         }
+    }
+
+    private var descriptionText: String {
+        guard let summary = anime.summary?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !summary.isEmpty else {
+            return "Keine Beschreibung verfügbar."
+        }
+        return summary
     }
 }
 
