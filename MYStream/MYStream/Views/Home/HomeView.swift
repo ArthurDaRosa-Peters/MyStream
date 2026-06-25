@@ -28,9 +28,11 @@ struct HomeView: View {
                     }
 
                     Text("MYStream")
+                        .multilineTextAlignment(.center)
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundColor(.red)
+                        
 
                     Spacer()
                 }

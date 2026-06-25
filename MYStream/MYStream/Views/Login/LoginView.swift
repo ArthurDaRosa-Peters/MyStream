@@ -24,8 +24,7 @@ struct LoginView: View {
                     TextField("Benutzername...", text: $vm.username)
                         .textFieldStyle(MYTextFieldStyle())
                         .textContentType(.username)
-                        .autocapitalization(.none)
-                        .disableAutocorrection(true)
+                        .usernameTextInputBehavior()
 
                     SecureField("Passwort...", text: $vm.password)
                         .textFieldStyle(MYTextFieldStyle())
@@ -96,6 +95,21 @@ struct LoginView: View {
                 Spacer()
             }
         }
+    }
+}
+
+// MARK: - Text Input Behavior
+private extension View {
+    @ViewBuilder
+    func usernameTextInputBehavior() -> some View {
+        #if os(iOS)
+        self
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled(true)
+        #else
+        self
+            .autocorrectionDisabled(true)
+        #endif
     }
 }
 

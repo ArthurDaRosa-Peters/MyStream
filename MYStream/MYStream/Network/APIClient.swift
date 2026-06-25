@@ -25,7 +25,7 @@ final class APIClient {
     static let shared = APIClient()
     private init() {}
 
-    private let baseURL = "http://localhost:8080"
+    private let baseURL = "http://172.18.74.80:8080"
 
     // MARK: - Generic Request
     private func request<T: Decodable>(

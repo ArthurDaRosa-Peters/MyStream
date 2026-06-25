@@ -7,8 +7,10 @@ struct AnimeCard: View {
     let anime: CDAnime
     var cardWidth: CGFloat = 160
 
+    private let titleBarHeight: CGFloat = 56
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(spacing: 0) {
             CoverImageView(
                 path: anime.coverURL ?? "",
                 width: cardWidth,
@@ -16,12 +18,23 @@ struct AnimeCard: View {
             )
 
             Text(anime.title ?? "Unbekannt")
-                .font(.caption)
+                .font(.headline)
                 .fontWeight(.medium)
                 .foregroundColor(.white)
+                .multilineTextAlignment(.center)
                 .lineLimit(2)
-                .frame(width: cardWidth, alignment: .leading)
+                .minimumScaleFactor(0.85)
+                .padding(.horizontal, 10)
+                .frame(width: cardWidth, height: titleBarHeight)
+                .background(Color.white.opacity(0.14))
         }
+        .frame(width: cardWidth)
+        .background(Color.white.opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(Color.white.opacity(0.16), lineWidth: 1)
+        )
     }
 }
 
@@ -66,7 +79,7 @@ struct CoverImageView: View {
             }
         }
         .frame(width: width, height: height)
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .clipShape(TopRoundedRectangle(cornerRadius: 8))
     }
 
     private var placeholderView: some View {
@@ -77,6 +90,31 @@ struct CoverImageView: View {
                     .foregroundColor(.gray)
                     .font(.title2)
             )
+    }
+}
+
+private struct TopRoundedRectangle: Shape {
+    let cornerRadius: CGFloat
+
+    func path(in rect: CGRect) -> Path {
+        let radius = min(cornerRadius, rect.width / 2, rect.height / 2)
+
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + radius))
+        path.addQuadCurve(
+            to: CGPoint(x: rect.minX + radius, y: rect.minY),
+            control: CGPoint(x: rect.minX, y: rect.minY)
+        )
+        path.addLine(to: CGPoint(x: rect.maxX - radius, y: rect.minY))
+        path.addQuadCurve(
+            to: CGPoint(x: rect.maxX, y: rect.minY + radius),
+            control: CGPoint(x: rect.maxX, y: rect.minY)
+        )
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        path.closeSubpath()
+
+        return path
     }
 }
 
