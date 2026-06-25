@@ -4,6 +4,7 @@ struct SidebarView: View {
 
     @Binding var isShowing: Bool
     @Binding var selectedTab: Int
+    let isOnline: Bool
     @EnvironmentObject var authManager: AuthManager
 
     var body: some View {
@@ -86,7 +87,11 @@ struct SidebarView: View {
     // MARK: - Sidebar Button
     @ViewBuilder
     private func sidebarButton(title: String, icon: String, tab: Int) -> some View {
+        let isDisabled = tab == 0 && !isOnline
+
         Button {
+            guard !isDisabled else { return }
+
             selectedTab = tab
             withAnimation { isShowing = false }
         } label: {
@@ -109,5 +114,7 @@ struct SidebarView: View {
             .cornerRadius(8)
             .padding(.horizontal, 8)
         }
+        .disabled(isDisabled)
+        .opacity(isDisabled ? 0.4 : 1.0)
     }
 }

@@ -30,9 +30,22 @@ struct MainTabView: View {
     let isOnline: Bool
     @State private var showSidebar: Bool = false
 
+    private var guardedSelection: Binding<Int> {
+        Binding(
+            get: { selectedTab },
+            set: { newTab in
+                if newTab == 0 && !isOnline {
+                    selectedTab = 1
+                } else {
+                    selectedTab = newTab
+                }
+            }
+        )
+    }
+
     var body: some View {
         ZStack(alignment: .leading) {
-            TabView(selection: $selectedTab) {
+            TabView(selection: guardedSelection) {
                 HomeView(showSidebar: $showSidebar)
                     .tabItem {
                         Label("Home", systemImage: "house.fill")
@@ -53,7 +66,7 @@ struct MainTabView: View {
                     .ignoresSafeArea()
                     .onTapGesture { withAnimation { showSidebar = false } }
 
-                SidebarView(isShowing: $showSidebar, selectedTab: $selectedTab)
+                SidebarView(isShowing: $showSidebar, selectedTab: $selectedTab, isOnline: isOnline)
                     .transition(.move(edge: .leading))
             }
         }
