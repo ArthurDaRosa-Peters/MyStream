@@ -7,7 +7,9 @@ internal import Combine
 final class AuthManager: ObservableObject {
 
     static let shared = AuthManager()
-    private init() {}
+    private init() {
+        checkExistingSession()
+    }
 
     @Published var isLoggedIn: Bool = false
     @Published var username: String = ""
