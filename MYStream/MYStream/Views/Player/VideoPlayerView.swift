@@ -1,5 +1,6 @@
 import SwiftUI
 import AVKit
+internal import Combine
 
 struct VideoPlayerView: View {
 
@@ -8,25 +9,45 @@ struct VideoPlayerView: View {
 
     @State private var player: AVPlayer? = nil
     @State private var progressTimer: Timer? = nil
+    
+    // Für die Fehlerüberwachung im SwiftUI-Style
+    @State private var errorSubscription: AnyCancellable? = nil
 
     var body: some View {
-        ZStack {
+        ZStack(alignment: .topLeading) {
             Color.black.ignoresSafeArea()
 
             if let player = player {
                 VideoPlayer(player: player)
                     .ignoresSafeArea()
             } else {
-                ProgressView("Lade Video...")
-                    .tint(.red)
-                    .foregroundColor(.gray)
+                VStack(spacing: 12) {
+                    ProgressView()
+                        .tint(.red)
+                    Text("Lade Video...")
+                        .foregroundColor(.gray)
+                        .font(.subheadline)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+            
+            // Schließen-Button oben links, falls der Stream fehlschlägt
+            Button {
+                dismiss()
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 30))
+                    .foregroundColor(.white.opacity(0.6))
+                    .padding()
+            }
+            .padding(.top, 10)
         }
         .onAppear {
             setupPlayer()
         }
         .onDisappear {
             stopTracking()
+            errorSubscription?.cancel()
             player?.pause()
         }
     }
@@ -38,15 +59,41 @@ struct VideoPlayerView: View {
         // Offline: lokale Datei bevorzugen
         if episode.isDownloaded, let localPath = episode.localFileURL {
             videoURL = URL(fileURLWithPath: localPath)
+            print("📁 [Player] Versuche LOKALE Datei abzuspielen: \(localPath)")
         } else {
             // Online: Stream vom Server
             videoURL = APIClient.shared.videoURL(episodeId: Int(episode.id))
+            print("🌐 [Player] Versuche ONLINE-Stream von URL: \(String(describing: videoURL))")
         }
 
-        guard let url = videoURL else { return }
+        guard let url = videoURL else {
+            print("❌ [Player] Fehler: videoURL ist nil!")
+            return
+        }
 
         let avPlayer = AVPlayer(url: url)
         self.player = avPlayer
+
+        // --- FEHLER-BEACHTUNG PER COMBINE ---
+        if let currentItem = avPlayer.currentItem {
+            errorSubscription = currentItem.publisher(for: \.status)
+                .receive(on: RunLoop.main)
+                .sink { status in
+                    switch status {
+                    case .failed:
+                        if let error = currentItem.error {
+                            print("❌ [Player] AVPlayer-Fehler: \(error.localizedDescription)")
+                            print("❌ [Player] AVPlayer-Fehlerdetails: \(error)")
+                        }
+                    case .readyToPlay:
+                        print("✅ [Player] Stream erfolgreich geladen und bereit zum Abspielen!")
+                    case .unknown:
+                        print("⏳ [Player] Stream-Status noch unbekannt...")
+                    @unknown default:
+                        break
+                    }
+                }
+        }
 
         // Zum gespeicherten Fortschritt springen
         if episode.progress > 5 {

@@ -40,6 +40,16 @@ final class CoreDataManager {
     // MARK: - Sync Animes from API
     /// Aktualisiert oder erstellt CDAnime-Objekte anhand der API-Antwort
     func syncAnimes(_ animes: [Anime]) {
+        let serverIDs = animes.map { Int64($0.id) }
+        let request: NSFetchRequest<CDAnime> = CDAnime.fetchRequest()
+        if let localAnimes = try? context.fetch(request) {
+            for localAnime in localAnimes {
+                if !serverIDs.contains(localAnime.id) {
+                    context.delete(localAnime)
+                }
+            }
+        }
+        
         for anime in animes {
             let cdAnime = fetchOrCreateAnime(id: Int64(anime.id))
             cdAnime.id            = Int64(anime.id)
@@ -56,7 +66,6 @@ final class CoreDataManager {
             cdAnime.dateAdded     = anime.dateAdded
             cdAnime.episodeCount  = Int16(anime.episodeCount)
 
-            // Episoden synchronisieren
             syncEpisodes(anime.decodedEpisodes(), for: cdAnime)
         }
         save()
