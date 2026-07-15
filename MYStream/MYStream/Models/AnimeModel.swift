@@ -77,7 +77,16 @@ struct Anime: Decodable, Identifiable {
         let trimmedJson = json.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedJson.isEmpty,
               let data = trimmedJson.data(using: .utf8) else { return [] }
-        return (try? JSONDecoder().decode([Episode].self, from: data)) ?? []
+        
+        do {
+            let decoded = try JSONDecoder().decode([Episode].self, from: data)
+            print("✅ Erfolgreich \(decoded.count) Episoden decodiert!")
+            return decoded
+        } catch {
+            // Das wird uns im Debugger EXAKT verraten, welches Feld das Problem verursacht!
+            print("❌ JSON Decoding Error in Episodes: \(error)")
+            return []
+        }
     }
 }
 
@@ -195,21 +204,26 @@ extension KeyedDecodingContainer where Key == FlexibleCodingKey {
         try decodeBoolIfPresent(keyNames: keys)
     }
 
-    private func decodeBoolIfPresent(keyNames keys: [String]) throws -> Bool? {
-        if let value = try decodeIfPresent(Bool.self, keyNames: keys) {
-            return value
-        }
-        if let intValue = try decodeIfPresent(Int.self, keyNames: keys) {
-            return intValue != 0
-        }
-        if let stringValue = try decodeIfPresent(String.self, keyNames: keys) {
-            switch stringValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
-            case "true", "1", "yes":
-                return true
-            case "false", "0", "no":
-                return false
-            default:
-                return nil
+
+    
+    func decodeBoolIfPresent(keyNames keys: [String]) throws -> Bool? {
+        for key in keys {
+            if let codingKey = FlexibleCodingKey(stringValue: key) {
+                // 1. Versuch: Ist es ein echter Bool? (true / false)
+                if let boolValue = try? decodeIfPresent(Bool.self, forKey: codingKey ) {
+                    return boolValue
+                }
+                
+                // 2. Versuch: Ist es eine Zahl? (1 / 0)
+                if let intValue = try? decodeIfPresent(Int.self, forKey: codingKey ) {
+                    return intValue != 0 // 1 -> true, 0 -> false
+                }
+                
+                // 3. Versuch: Ist es ein String? ("true" / "false")
+                if let stringValue = try? decodeIfPresent(String.self, forKey: codingKey ) {
+                    let lowercased = stringValue.lowercased()
+                    return lowercased == "true" || lowercased == "1"
+                }
             }
         }
         return nil

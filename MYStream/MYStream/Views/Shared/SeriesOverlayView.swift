@@ -148,15 +148,24 @@ struct SeriesOverlayView: View {
             }
         }
         .onAppear {
-            // Erste verfügbare Staffel vorauswählen
-            if let first = availableSeasons.first {
-                selectedSeason = first
+                    // Erste verfügbare Staffel beim Erscheinen auswählen
+                    selectFirstAvailableSeason()
+                }
+                // NEU: Reagiert asynchron, falls die Episoden erst Millisekunden später geladen werden
+                .onChange(of: availableSeasons) { oldValue, newValue in
+                    selectFirstAvailableSeason()
+                }
+                .fullScreenCover(item: $selectedEpisode) { episode in
+                    VideoPlayerView(episode: episode)
+                }
             }
-        }
-        .fullScreenCover(item: $selectedEpisode) { episode in
-            VideoPlayerView(episode: episode)
-        }
-    }
+
+            // NEU: Kleine Hilfsfunktion, um doppelten Code zu vermeiden
+            private func selectFirstAvailableSeason() {
+                if let first = availableSeasons.first {
+                    selectedSeason = first
+                }
+            }
 
     private var descriptionText: String {
         guard let summary = anime.summary?.trimmingCharacters(in: .whitespacesAndNewlines),
