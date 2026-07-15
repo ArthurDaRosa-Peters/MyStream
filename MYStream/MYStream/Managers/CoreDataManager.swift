@@ -62,8 +62,9 @@ final class CoreDataManager {
         save()
     }
 
-    // MARK: - Sync Episodes
+    // MARK: - Sync Episodes (Verbesserte Version)
     private func syncEpisodes(_ episodes: [Episode], for cdAnime: CDAnime) {
+        
         for episode in episodes {
             let cdEpisode = fetchOrCreateEpisode(id: Int64(episode.id))
             cdEpisode.id            = Int64(episode.id)
@@ -75,8 +76,14 @@ final class CoreDataManager {
             cdEpisode.completed     = episode.completed
             cdEpisode.isAvailable   = episode.isAvailable
             cdEpisode.isNew         = episode.isNew
-            // localFileURL und isDownloaded werden NICHT überschrieben
-            cdEpisode.anime         = cdAnime
+
+            cdEpisode.anime = cdAnime
+            
+            if let mutableEpisodes = cdAnime.mutableSetValue(forKey: "episodes") as? NSMutableSet {
+                if !mutableEpisodes.contains(cdEpisode) {
+                    mutableEpisodes.add(cdEpisode)
+                }
+            }
         }
     }
 
