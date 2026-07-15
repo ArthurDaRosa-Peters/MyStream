@@ -20,6 +20,12 @@ struct HomeResponse: Decodable {
         recent = try container.decodeArrayIfPresent([Anime].self, forKeys: "recent", "Recent")
         watchlist = try container.decodeArrayIfPresent([Anime].self, forKeys: "watchlist", "Watchlist")
         all = try container.decodeArrayIfPresent([Anime].self, forKeys: "all", "All") ?? []
+        
+        if let token = KeychainManager.shared.readToken() {
+            print("Mein Aktueller Token für CURL: \(token)")
+        } else {
+            print("Kein Token gefunden. Bitte erst in der App einloggen!")
+        }
     }
 }
 

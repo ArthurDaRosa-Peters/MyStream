@@ -16,4 +16,5 @@ struct MYStreamApp: App {
                 .environmentObject(authManager)
         }
     }
+        
 }

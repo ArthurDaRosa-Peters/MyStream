@@ -2,7 +2,7 @@ import SwiftUI
 
 struct SeriesOverlayView: View {
 
-    let anime: CDAnime
+    @ObservedObject var anime: CDAnime
     @Environment(\.dismiss) private var dismiss
     @State private var selectedSeason: Int = 1
     @State private var selectedEpisode: CDEpisode? = nil

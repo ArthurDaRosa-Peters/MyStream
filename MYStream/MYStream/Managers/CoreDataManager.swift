@@ -62,9 +62,8 @@ final class CoreDataManager {
         save()
     }
 
-    // MARK: - Sync Episodes (Verbesserte Version)
+    // MARK: - Sync Episodes
     private func syncEpisodes(_ episodes: [Episode], for cdAnime: CDAnime) {
-        
         for episode in episodes {
             let cdEpisode = fetchOrCreateEpisode(id: Int64(episode.id))
             cdEpisode.id            = Int64(episode.id)
@@ -78,25 +77,19 @@ final class CoreDataManager {
             cdEpisode.isNew         = episode.isNew
 
             cdEpisode.anime = cdAnime
-            
-            if let mutableEpisodes = cdAnime.mutableSetValue(forKey: "episodes") as? NSMutableSet {
-                if !mutableEpisodes.contains(cdEpisode) {
-                    mutableEpisodes.add(cdEpisode)
-                }
-            }
         }
     }
 
     // MARK: - Fetch Helpers
     private func fetchOrCreateAnime(id: Int64) -> CDAnime {
         let request: NSFetchRequest<CDAnime> = CDAnime.fetchRequest()
-        request.predicate = NSPredicate(format: "id == %d", id)
+        request.predicate = NSPredicate(format: "id == %lld", id)
         return (try? context.fetch(request).first) ?? CDAnime(context: context)
     }
 
     private func fetchOrCreateEpisode(id: Int64) -> CDEpisode {
         let request: NSFetchRequest<CDEpisode> = CDEpisode.fetchRequest()
-        request.predicate = NSPredicate(format: "id == %d", id)
+        request.predicate = NSPredicate(format: "id == %lld", id)
         return (try? context.fetch(request).first) ?? CDEpisode(context: context)
     }
 
@@ -119,7 +112,7 @@ final class CoreDataManager {
     // MARK: - Update Episode Download State
     func setEpisodeDownloaded(id: Int64, localURL: String) {
         let request: NSFetchRequest<CDEpisode> = CDEpisode.fetchRequest()
-        request.predicate = NSPredicate(format: "id == %d", id)
+        request.predicate = NSPredicate(format: "id == %lld", id)
         guard let episode = try? context.fetch(request).first else { return }
         episode.isDownloaded  = true
         episode.localFileURL  = localURL
@@ -128,7 +121,7 @@ final class CoreDataManager {
 
     func setEpisodeDownloadFailed(id: Int64) {
         let request: NSFetchRequest<CDEpisode> = CDEpisode.fetchRequest()
-        request.predicate = NSPredicate(format: "id == %d", id)
+        request.predicate = NSPredicate(format: "id == %lld", id)
         guard let episode = try? context.fetch(request).first else { return }
         episode.isDownloaded = false
         episode.localFileURL = nil
@@ -138,7 +131,7 @@ final class CoreDataManager {
     // MARK: - Update Progress
     func updateProgress(episodeId: Int64, progress: Double, completed: Bool) {
         let request: NSFetchRequest<CDEpisode> = CDEpisode.fetchRequest()
-        request.predicate = NSPredicate(format: "id == %d", episodeId)
+        request.predicate = NSPredicate(format: "id == %lld", episodeId)
         guard let episode = try? context.fetch(request).first else { return }
         episode.progress  = progress
         episode.completed = completed
@@ -148,7 +141,7 @@ final class CoreDataManager {
     // MARK: - Update Watchlist
     func updateWatchlist(animeId: Int64, isOnWatchlist: Bool) {
         let request: NSFetchRequest<CDAnime> = CDAnime.fetchRequest()
-        request.predicate = NSPredicate(format: "id == %d", animeId)
+        request.predicate = NSPredicate(format: "id == %lld", animeId)
         guard let anime = try? context.fetch(request).first else { return }
         anime.isOnWatchlist = isOnWatchlist
         save()
