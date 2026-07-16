@@ -88,7 +88,7 @@ struct DownloadsView: View {
         .onAppear { vm.load() }
         .onChange(of: downloadManager.states) { _ in vm.refresh() }
         .sheet(item: $selectedAnime) { anime in
-            SeriesOverlayView(anime: anime)
+            SeriesOverlayView(anime: anime, onlyShowDownloaded: true)
                 .environmentObject(authManager)
         }
     }

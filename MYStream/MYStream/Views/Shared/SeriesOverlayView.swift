@@ -3,6 +3,7 @@ import SwiftUI
 struct SeriesOverlayView: View {
 
     @ObservedObject var anime: CDAnime
+    var onlyShowDownloaded: Bool = false
     @Environment(\.dismiss) private var dismiss
     @State private var selectedSeason: Int = 1
     @State private var selectedEpisode: CDEpisode? = nil
@@ -10,7 +11,8 @@ struct SeriesOverlayView: View {
     // Episoden als Array aus dem Relationship
     private var allEpisodes: [CDEpisode] {
         let set = anime.episodes as? Set<CDEpisode> ?? []
-        return set.sorted {
+        let baseArray = onlyShowDownloaded ? Array(set.filter { $0.isDownloaded }) : Array(set)
+        return baseArray.sorted {
             if $0.seasonNumber != $1.seasonNumber {
                 return $0.seasonNumber < $1.seasonNumber
             }
@@ -135,6 +137,13 @@ struct SeriesOverlayView: View {
                                                 .stroke(Color.white.opacity(0.16), lineWidth: 1)
                                         )
                                 }
+                                .contextMenu {
+                                    Button {
+                                        DownloadManager.shared.download(episode: episode)
+                                    } label: {
+                                        Label(episode.isDownloaded ? "Erneut herunterladen" : "Herunterladen", systemImage: "arrow.down.circle")
+                                    }
+                                }
                             }
                         }
                     } else {
@@ -221,6 +230,13 @@ struct EpisodeRow: View {
         .padding(.vertical, 10)
         .background(Color.white.opacity(0.05))
         .cornerRadius(8)
+        .contextMenu {
+            Button {
+                DownloadManager.shared.download(episode: episode)
+            } label: {
+                Label(episode.isDownloaded ? "Erneut herunterladen" : "Herunterladen", systemImage: "arrow.down.circle")
+            }
+        }
     }
 
     @ViewBuilder
