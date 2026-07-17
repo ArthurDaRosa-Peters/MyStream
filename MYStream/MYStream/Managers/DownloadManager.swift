@@ -40,10 +40,8 @@ final class DownloadManager: NSObject, ObservableObject {
 
         guard let url = APIClient.shared.videoURL(episodeId: Int(episodeId)) else { return }
 
-        var request = URLRequest(url: url)
-        if let token = KeychainManager.shared.readToken() {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
+        // URL enthält bereits Token als Query-Parameter
+        let request = URLRequest(url: url)
 
         let task = session.downloadTask(with: request)
         task.taskDescription = "\(episodeId)"
@@ -84,19 +82,36 @@ extension DownloadManager: URLSessionDownloadDelegate {
                 try FileManager.default.removeItem(at: dest)
             }
             try FileManager.default.moveItem(at: location, to: dest)
+            print("✅ [Download] Datei erfolgreich gespeichert: \(dest.path)")
 
-            CoreDataManager.shared.setEpisodeDownloaded(
-                id: episodeId,
-                localURL: dest.path
-            )
-
+            // ⭐ WICHTIG: CoreData MUSS auf MainActor laufen (Thread-Safety)
             Task { @MainActor in
-                self.states[episodeId] = .done
-                self.tasks[episodeId] = nil
+                do {
+                    CoreDataManager.shared.setEpisodeDownloaded(
+                        id: episodeId,
+                        localURL: dest.path
+                    )
+                    print("✅ [Download] Episode \(episodeId) in CoreData als heruntergeladen markiert")
+                    // ⭐ Notifiziere alle Views dass Download komplett ist
+                    NotificationCenter.default.post(name: NSNotification.Name("EpisodeDownloadComplete"), object: episodeId)
+                    self.states[episodeId] = .done
+                    self.tasks[episodeId] = nil
+                } catch {
+                    print("❌ [Download] CoreData-Fehler beim Speichern: \(error)")
+                    self.states[episodeId] = .failed
+                    self.tasks[episodeId] = nil
+                }
             }
         } catch {
-            CoreDataManager.shared.setEpisodeDownloadFailed(id: episodeId)
+            print("❌ [Download] Fehler beim Speichern der Datei: \(error)")
+            // ⭐ Auch hier CoreData auf MainActor
             Task { @MainActor in
+                do {
+                    CoreDataManager.shared.setEpisodeDownloadFailed(id: episodeId)
+                    print("✅ [Download] Episode \(episodeId) als fehlgeschlagen markiert")
+                } catch {
+                    print("❌ [Download] Fehler beim Markieren des Fehlers: \(error)")
+                }
                 self.states[episodeId] = .failed
                 self.tasks[episodeId] = nil
             }
@@ -129,9 +144,15 @@ extension DownloadManager: URLSessionDownloadDelegate {
               let idString = task.taskDescription,
               let episodeId = Int64(idString) else { return }
 
-        print("Download fehlgeschlagen für Episode \(episodeId): \(error)")
-        CoreDataManager.shared.setEpisodeDownloadFailed(id: episodeId)
+        print("❌ [Download] Netzwerkfehler für Episode \(episodeId): \(error)")
+        // ⭐ CoreData auf MainActor
         Task { @MainActor in
+            do {
+                CoreDataManager.shared.setEpisodeDownloadFailed(id: episodeId)
+                print("✅ [Download] Episode \(episodeId) als fehlgeschlagen markiert")
+            } catch {
+                print("❌ [Download] Fehler beim Markieren des Fehlers: \(error)")
+            }
             self.states[episodeId] = .failed
             self.tasks[episodeId] = nil
         }

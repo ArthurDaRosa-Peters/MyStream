@@ -104,16 +104,11 @@ struct SeriesOverlayView: View {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 8) {
                                 ForEach(availableSeasons, id: \.self) { season in
-                                    Button {
+                                    SeasonButton(
+                                        season: season,
+                                        isSelected: selectedSeason == season
+                                    ) {
                                         selectedSeason = season
-                                    } label: {
-                                        Text("Season \(season)")
-                                            .font(.subheadline)
-                                            .foregroundColor(selectedSeason == season ? .white : .black)
-                                            .frame(height: 34)
-                                            .padding(.horizontal, 16)
-                                            .background(selectedSeason == season ? Color.red : Color.gray)
-                                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                                     }
                                 }
                             }
@@ -121,28 +116,8 @@ struct SeriesOverlayView: View {
 
                         LazyVGrid(columns: episodeColumns, spacing: 8) {
                             ForEach(episodesForSeason) { episode in
-                                Button {
+                                EpisodeGridButton(episode: episode) {
                                     selectedEpisode = episode
-                                } label: {
-                                    Text("EP \(episode.episodeNumber)")
-                                        .font(.subheadline)
-                                        .fontWeight(.medium)
-                                        .foregroundColor(.white)
-                                        .frame(maxWidth: .infinity)
-                                        .frame(height: 34)
-                                        .background(Color.white.opacity(0.14))
-                                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                                .stroke(Color.white.opacity(0.16), lineWidth: 1)
-                                        )
-                                }
-                                .contextMenu {
-                                    Button {
-                                        DownloadManager.shared.download(episode: episode)
-                                    } label: {
-                                        Label(episode.isDownloaded ? "Erneut herunterladen" : "Herunterladen", systemImage: "arrow.down.circle")
-                                    }
                                 }
                             }
                         }
@@ -157,24 +132,24 @@ struct SeriesOverlayView: View {
             }
         }
         .onAppear {
-                    // Erste verfügbare Staffel beim Erscheinen auswählen
-                    selectFirstAvailableSeason()
-                }
-                // NEU: Reagiert asynchron, falls die Episoden erst Millisekunden später geladen werden
-                .onChange(of: availableSeasons) { oldValue, newValue in
-                    selectFirstAvailableSeason()
-                }
-                .fullScreenCover(item: $selectedEpisode) { episode in
-                    VideoPlayerView(episode: episode)
-                }
-            }
+            // Erste verfügbare Staffel beim Erscheinen auswählen
+            selectFirstAvailableSeason()
+        }
+        // NEU: Reagiert asynchron, falls die Episoden erst Millisekunden später geladen werden
+        .onChange(of: availableSeasons) { oldValue, newValue in
+            selectFirstAvailableSeason()
+        }
+        .fullScreenCover(item: $selectedEpisode) { episode in
+            VideoPlayerView(episodeId: episode.id)
+        }
+    }
 
-            // NEU: Kleine Hilfsfunktion, um doppelten Code zu vermeiden
-            private func selectFirstAvailableSeason() {
-                if let first = availableSeasons.first {
-                    selectedSeason = first
-                }
-            }
+    // NEU: Kleine Hilfsfunktion, um doppelten Code zu vermeiden
+    private func selectFirstAvailableSeason() {
+        if let first = availableSeasons.first {
+            selectedSeason = first
+        }
+    }
 
     private var descriptionText: String {
         guard let summary = anime.summary?.trimmingCharacters(in: .whitespacesAndNewlines),
@@ -182,6 +157,71 @@ struct SeriesOverlayView: View {
             return "Keine Beschreibung verfügbar."
         }
         return summary
+    }
+}
+
+// MARK: - SeasonButton
+struct SeasonButton: View {
+
+    let season: Int
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text("Season \(season)")
+                .font(.subheadline)
+                .foregroundColor(foregroundColor)
+                .frame(height: 34)
+                .padding(.horizontal, 16)
+                .background(backgroundColor)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        }
+    }
+
+    private var foregroundColor: Color {
+        isSelected ? .white : .black
+    }
+
+    private var backgroundColor: Color {
+        isSelected ? .red : .gray
+    }
+}
+
+// MARK: - EpisodeGridButton
+struct EpisodeGridButton: View {
+
+    let episode: CDEpisode
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text("EP \(episode.episodeNumber)")
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 34)
+                .background(Color.white.opacity(0.14))
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .overlay(border)
+        }
+        .contextMenu {
+            Button {
+                DownloadManager.shared.download(episode: episode)
+            } label: {
+                Label(downloadTitle, systemImage: "arrow.down.circle")
+            }
+        }
+    }
+
+    private var border: some View {
+        RoundedRectangle(cornerRadius: 10, style: .continuous)
+            .stroke(Color.white.opacity(0.16), lineWidth: 1)
+    }
+
+    private var downloadTitle: String {
+        episode.isDownloaded ? "Erneut herunterladen" : "Herunterladen"
     }
 }
 

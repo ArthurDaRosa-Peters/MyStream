@@ -1,16 +1,18 @@
 import SwiftUI
+import CoreData
 import AVKit
 internal import Combine
 
 struct VideoPlayerView: View {
 
-    let episode: CDEpisode
+    let episodeId: Int64  // ⭐ Nur die ID speichern
     @Environment(\.dismiss) private var dismiss
 
+    @State private var episode: CDEpisode?  // ⭐ Fresh aus CoreData
     @State private var player: AVPlayer? = nil
     @State private var progressTimer: Timer? = nil
+    @State private var updateTrigger: Int = 0  // ⭐ Trigger für Refresh
     
-    // Für die Fehlerüberwachung im SwiftUI-Style
     @State private var errorSubscription: AnyCancellable? = nil
 
     var body: some View {
@@ -31,7 +33,6 @@ struct VideoPlayerView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             
-            // Schließen-Button oben links, falls der Stream fehlschlägt
             Button {
                 dismiss()
             } label: {
@@ -43,7 +44,23 @@ struct VideoPlayerView: View {
             .padding(.top, 10)
         }
         .onAppear {
-            setupPlayer()
+            loadEpisodeAndSetup()
+            // ⭐ Reagiere auf Download-Completion
+            NotificationCenter.default.addObserver(
+                forName: NSNotification.Name("EpisodeDownloadComplete"),
+                object: nil,
+                queue: .main
+            ) { notification in
+                if let completedId = notification.object as? Int64, completedId == episodeId {
+                    print("📱 [Player] Download komplett! Refresh Episode...")
+                    loadEpisodeAndSetup()
+                }
+            }
+        }
+        .onChange(of: updateTrigger) { _, _ in
+            // ⭐ Wenn Trigger sich ändert, lade Episode neu
+            print("📱 [Player] Refresh trigger aktiviert, lade Episode neu...")
+            loadEpisodeAndSetup()
         }
         .onDisappear {
             stopTracking()
@@ -52,19 +69,23 @@ struct VideoPlayerView: View {
         }
     }
 
-    // MARK: - Setup Player
-    private func setupPlayer() {
-        let videoURL: URL?
-
-        // Offline: lokale Datei bevorzugen
-        if episode.isDownloaded, let localPath = episode.localFileURL {
-            videoURL = URL(fileURLWithPath: localPath)
-            print("📁 [Player] Versuche LOKALE Datei abzuspielen: \(localPath)")
+    // ⭐ NEU: Lade Episode fresh aus CoreData
+    private func loadEpisodeAndSetup() {
+        let request: NSFetchRequest<CDEpisode> = CDEpisode.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %lld", episodeId)
+        
+        if let freshEpisode = try? CoreDataManager.shared.context.fetch(request).first {
+            self.episode = freshEpisode
+            print("✅ [Player] Episode \(episodeId) fresh aus CoreData geladen: isDownloaded=\(freshEpisode.isDownloaded), localURL=\(freshEpisode.localFileURL ?? "nil")")
+            setupPlayer(episode: freshEpisode)
         } else {
-            // Online: Stream vom Server
-            videoURL = APIClient.shared.videoURL(episodeId: Int(episode.id))
-            print("🌐 [Player] Versuche ONLINE-Stream von URL: \(String(describing: videoURL))")
+            print("❌ [Player] Episode \(episodeId) nicht in CoreData gefunden!")
         }
+    }
+
+    // MARK: - Setup Player
+    private func setupPlayer(episode: CDEpisode) {
+        let videoURL = playbackURL(for: episode)
 
         guard let url = videoURL else {
             print("❌ [Player] Fehler: videoURL ist nil!")
@@ -74,7 +95,6 @@ struct VideoPlayerView: View {
         let avPlayer = AVPlayer(url: url)
         self.player = avPlayer
 
-        // --- FEHLER-BEACHTUNG PER COMBINE ---
         if let currentItem = avPlayer.currentItem {
             errorSubscription = currentItem.publisher(for: \.status)
                 .receive(on: RunLoop.main)
@@ -95,18 +115,43 @@ struct VideoPlayerView: View {
                 }
         }
 
-        // Zum gespeicherten Fortschritt springen
         if episode.progress > 5 {
             let seekTime = CMTime(seconds: episode.progress, preferredTimescale: 600)
             avPlayer.seek(to: seekTime)
         }
 
         avPlayer.play()
-        startTracking(player: avPlayer)
+        startTracking(player: avPlayer, episodeId: episode.id)
+    }
+
+    private func playbackURL(for episode: CDEpisode) -> URL? {
+        if episode.isDownloaded, let localURL = localPlaybackURL(for: episode) {
+            print("📁 [Player] Versuche LOKALE Datei abzuspielen: \(localURL.path)")
+            return localURL
+        }
+
+        let streamURL = APIClient.shared.videoURL(episodeId: Int(episode.id))
+        print("🌐 [Player] Versuche ONLINE-Stream von URL: \(String(describing: streamURL))")
+        return streamURL
+    }
+
+    private func localPlaybackURL(for episode: CDEpisode) -> URL? {
+        let currentLocalURL = DownloadManager.localURL(for: episode.id)
+        if FileManager.default.fileExists(atPath: currentLocalURL.path) {
+            return currentLocalURL
+        }
+
+        if let storedPath = episode.localFileURL,
+           FileManager.default.fileExists(atPath: storedPath) {
+            return URL(fileURLWithPath: storedPath)
+        }
+
+        print("⚠️ [Player] Lokale Datei für Episode \(episode.id) nicht gefunden. Gespeicherter Pfad: \(episode.localFileURL ?? "nil")")
+        return nil
     }
 
     // MARK: - Progress Tracking
-    private func startTracking(player: AVPlayer) {
+    private func startTracking(player: AVPlayer, episodeId: Int64) {
         progressTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { _ in
             guard let currentItem = player.currentItem else { return }
             let position = player.currentTime().seconds
@@ -116,17 +161,15 @@ struct VideoPlayerView: View {
 
             let completed = (position / duration) > 0.9
 
-            // CoreData lokal aktualisieren
             CoreDataManager.shared.updateProgress(
-                episodeId: episode.id,
+                episodeId: episodeId,
                 progress: position,
                 completed: completed
             )
 
-            // Server informieren (fire & forget)
             Task {
                 try? await APIClient.shared.updateProgress(
-                    episodeId: Int(episode.id),
+                    episodeId: Int(episodeId),
                     position: position,
                     duration: duration
                 )
